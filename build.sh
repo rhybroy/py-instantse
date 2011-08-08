@@ -23,6 +23,6 @@ cd ..
 
 mv ./output search
 
-tar zfc confilter.tar.gz search
+tar zfc search.tar.gz search
 
 rm -rf search
