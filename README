@@ -1,0 +1,43 @@
+# Author: troycheng 
+# email: frostmourn716@gmail.com
+
+1. Introduction
+
+    该模块提供网站后台的实时搜索功能，调用者需要提供json格式的数据，其中包含需
+    要索引的字段，以及其它需要查询的信息，例如url，时间，简介等等，该模块在接
+    收到数据之后会将其索引至磁盘，查询时可以发送Http请求，指定需要查询的字段及
+    分页的参数，关于该模块的架构设计可以参考Blog上的这篇文章：
+    http://troycheng.blogcn.com/articles/py-instantse%EF%BC%9A%E4%B8%80%E4%B8%AA%E9%97%AE%E7%AD%94%E7%BD%91%E7%AB%99%E7%9A%84%E5%AE%9E%E6%97%B6%E6%90%9C%E7%B4%A2%E5%8A%9F%E8%83%BD%E5%90%8E%E5%8F%B0%E5%AE%9E%E7%8E%B0.html
+
+2. Installation
+    该模块依赖两个第三方模块，gevent以及xapian。需要用户首先安装这两个模块：
+    gevent：http://www.gevent.org/
+    xapian：http://xapian.org/
+    gevent的安装很简单，xapian的编译安装可以参考这篇Blog：http://troycheng.blogcn.com/articles/xapian%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85%E5%8F%8Apython-binding%E7%9A%84%E6%AD%A5%E9%AA%A4.html
+    安装完之后，将py-instantse模块解压到工作目录即可
+
+3. Usage
+    进入py-instantse/bin目录，执行
+    sudo python searchd.py start & 1>/dev/null 2>&1
+    关闭服务的时候只需按顺序kill掉所启动的进程即可。
+    
+    该模块的输入：通过PushServer接收应用发过来的数据，为json格式，其中title为
+    索引字段，其它的字段可以自定义，检索的时候都会返回，示例如下：
+    Input：
+    {
+        "id": 124232352,
+        "type": "question",
+        "title": "py-instantse模块是如何使用的",
+        "icon": "http://image_url/icon/124232352",
+        "summary": "py-instantse是一个实时搜索模块的...."
+    }
+    Push Server的Client端示例可以在py-instantse/bin/pushclient.py中看到，主要
+    是将消息格式化之后通过socket通信的方式发给Push Server。
+
+    高模块的输出：通过发送http get请求访问query server，获得检索的返回结果。例
+    如需要查询“实时搜索”，则从前台发送一个如下格式的请求：
+    http://queryserver_host:port?query=实时搜索&offset=0&psize=20
+    其中query是用户在搜索框中输入的搜索字段，offset和psize用来对检索结果进行分
+    页，offset是偏移量，psize是每页显示条数，offset和psize均为非必须的的参数，
+    offset默认为0，psize则可以在配置文件中配置。该请求返回检索结果的json串，前
+    台解析该json串进行显示即可。
