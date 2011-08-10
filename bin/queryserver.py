@@ -7,7 +7,8 @@ import mmseg
 import json
 import threading
 import time
-from mmseg.search import seg_txt_2_dict
+from mmseg.search import seg_title_search
+from collections import defaultdict
 from globaldef import slog, config
 from gevent import wsgi, pool
 from cgi import parse_qs, escape
@@ -31,13 +32,20 @@ def refreshDB(interval):
 def search(querystring, offset=0, pagesize=QUERY_PAGESIZE, enquire=SEARCH_ENQUIRE):
     # split querystring, get query
     query_list = []
-    for word, value in seg_txt_2_dict(querystring).iteritems():
+    
+    # parse query string
+    items = defaultdict(int)
+    for word in seg_title_search(querystring):
+        items[word] += 1
+
+    # get query
+    for word, value in items.iteritems():
         query_item = xapian.Query(word, value)
         query_list.append(query_item)
     if 0 == len(query_list):
         return None
     elif len(query_list) != 1:
-        query = xapian.Query(xapian.Query.OP_AND, query_list)
+        query = xapian.Query(xapian.Query.OP_OR, query_list)
     else:
         query = query_list[0]
 
